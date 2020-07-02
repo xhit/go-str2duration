@@ -1,3 +1,3 @@
 module github.com/xhit/go-str2duration
 
-go 1.13
+go 1.14

@@ -7,9 +7,7 @@ import (
 
 func TestParseString(t *testing.T) {
 
-	str2duration := NewStr2DurationParser()
-
-	str2duration.DisableCheck = false
+	DisableCheck = false
 
 	for i, tt := range []struct {
 		dur      string
@@ -48,7 +46,7 @@ func TestParseString(t *testing.T) {
 		{"2.3D3S96NS", time.Duration(48*time.Hour + 3*time.Second + 96*time.Nanosecond)},
 		{"2D3S3.66.SMS", time.Duration(48*time.Hour + 3*time.Second + 96*time.Nanosecond)},
 	} {
-		durationFromString, err := str2duration.Str2Duration(tt.dur)
+		durationFromString, err := Str2Duration(tt.dur)
 		if err != nil {
 			t.Logf("index %d -> in: %s returned: %s\tnot equal to %s", i, tt.dur, err.Error(), tt.expected.String())
 
@@ -61,9 +59,7 @@ func TestParseString(t *testing.T) {
 //TestParseDuration test if string returned by a duration is equal to string returned with the package
 func TestParseDuration(t *testing.T) {
 
-	str2duration := NewStr2DurationParser()
-
-	str2duration.DisableCheck = true
+	DisableCheck = true
 
 	for i, duration := range []time.Duration{
 		time.Duration(time.Hour + time.Minute + time.Second + time.Millisecond + time.Microsecond + time.Nanosecond),
@@ -96,7 +92,7 @@ func TestParseDuration(t *testing.T) {
 		time.Duration(61 * time.Second),
 		time.Duration(time.Microsecond + 16*time.Nanosecond),
 	} {
-		durationFromString, _ := str2duration.Str2Duration(duration.String())
+		durationFromString, _ := Str2Duration(duration.String())
 		if duration.String() != durationFromString.String() {
 			t.Errorf("index %d -> %s not equal to %s", i, duration.String(), durationFromString.String())
 		}

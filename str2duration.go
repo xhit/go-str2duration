@@ -14,33 +14,22 @@ const (
 )
 
 /*
-Parser struct contains flag
-for DisableCheck the speed up performance disabling aditional checks
+DisableCheck speed up performance disabling aditional checks
 in the input string. If DisableCheck is true then when input string is
 is invalid the time.Duration returned is always 0s and err is always nil.
 By default DisableCheck is false.
-
-Parser also contains compiled regex for performance.
 */
-type Parser struct {
-	reTimeDecimal *regexp.Regexp
-	reDuration    *regexp.Regexp
-	DisableCheck  bool
-}
+var DisableCheck bool
+var reTimeDecimal *regexp.Regexp
+var reDuration *regexp.Regexp
 
-//NewStr2DurationParser returns unexported struct with compiled regex for performance
-func NewStr2DurationParser() Parser {
-	var reTimeDecimal = regexp.MustCompile(`(?i)(\d+)(?:(?:\.)(\d+))?((?:[mµn])?s)$`)
-	var reDuration = regexp.MustCompile(`(?i)^(?:(\d+)(?:w))?(?:(\d+)(?:d))?(?:(\d+)(?:h))?(?:(\d{1,2})(?:m))?(?:(\d+)(?:s))?(?:(\d+)(?:ms))?(?:(\d+)(?:µs))?(?:(\d+)(?:ns))?$`)
-
-	return Parser{
-		reTimeDecimal: reTimeDecimal,
-		reDuration:    reDuration,
-	}
+func init() {
+	reTimeDecimal = regexp.MustCompile(`(?i)(\d+)(?:(?:\.)(\d+))?((?:[mµn])?s)$`)
+	reDuration = regexp.MustCompile(`(?i)^(?:(\d+)(?:w))?(?:(\d+)(?:d))?(?:(\d+)(?:h))?(?:(\d{1,2})(?:m))?(?:(\d+)(?:s))?(?:(\d+)(?:ms))?(?:(\d+)(?:µs))?(?:(\d+)(?:ns))?$`)
 }
 
 //Str2Duration returns time.Duration from string input
-func (p *Parser) Str2Duration(str string) (time.Duration, error) {
+func Str2Duration(str string) (time.Duration, error) {
 
 	var err error
 	/*
@@ -49,14 +38,14 @@ func (p *Parser) Str2Duration(str string) (time.Duration, error) {
 		string then that time is formatted in nanoseconds, this example returns 1000000001ns
 	*/
 	if strings.Contains(str, ".") {
-		str, err = p.decimalTimeToNano(str)
+		str, err = decimalTimeToNano(str)
 		if err != nil {
 			return time.Duration(0), err
 		}
 	}
 
-	if !p.DisableCheck {
-		if !p.reDuration.MatchString(str) {
+	if !DisableCheck {
+		if !reDuration.MatchString(str) {
 			return time.Duration(0), errors.New("invalid input duration string")
 		}
 	}
@@ -64,7 +53,7 @@ func (p *Parser) Str2Duration(str string) (time.Duration, error) {
 	var du time.Duration
 
 	//errors ignored because regex
-	for _, match := range p.reDuration.FindAllStringSubmatch(str, -1) {
+	for _, match := range reDuration.FindAllStringSubmatch(str, -1) {
 
 		//weeks
 		if len(match[1]) > 0 {
@@ -118,17 +107,17 @@ func (p *Parser) Str2Duration(str string) (time.Duration, error) {
 	return du, nil
 }
 
-func (p *Parser) decimalTimeToNano(str string) (string, error) {
+func decimalTimeToNano(str string) (string, error) {
 
 	var dotPart, dotTime, dotTimeDecimal, dotUnit string
 
-	if !p.DisableCheck {
-		if !p.reTimeDecimal.MatchString(str) {
+	if !DisableCheck {
+		if !reTimeDecimal.MatchString(str) {
 			return "", errors.New("invalid input duration string")
 		}
 	}
 
-	var t = p.reTimeDecimal.FindAllStringSubmatch(str, -1)
+	var t = reTimeDecimal.FindAllStringSubmatch(str, -1)
 
 	dotPart = t[0][0]
 	dotTime = t[0][1]

@@ -36,16 +36,13 @@ import (
 
 func main() {
     
-    //Initialize the parser
-    s2dParser := str2duration.NewStr2DurationParser()
-
     /*
     If DisableCheck is true then when input string is
     is invalid the time.Duration returned is always 0s and err is always nil.
     By default DisableCheck is false.
     */
     
-    //s2dParser.DisableCheck = true
+    //str2duration.DisableCheck = true
 
     for i, tt := range []struct {
             dur      string
@@ -80,7 +77,7 @@ func main() {
             {"2D3S96NS", time.Duration(48*time.Hour + 3*time.Second + 96*time.Nanosecond)},
 
         } {
-            durationFromString, err := s2dParser.Str2Duration(tt.dur)
+            durationFromString, err := str2duration.Str2Duration(tt.dur)
             if err != nil {
                 panic(err)
 
