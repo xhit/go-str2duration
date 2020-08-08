@@ -2,8 +2,8 @@
 
 This package allows to get a time.Duration from a string. The string can be a string retorned for time.Duration or a similar string with weeks or days too!.
 
-[![Go Doc](https://godoc.org/github.com/xhit/go-str2duration?status.svg)](https://godoc.org/github.com/xhit/go-str2duration)
-[![Go Report](https://goreportcard.com/badge/github.com/xhit/go-str2duration)](https://goreportcard.com/report/github.com/xhit/go-str2duration)
+<a href="https://goreportcard.com/report/github.com/xhit/go-str2duration"><img src="https://goreportcard.com/badge/github.com/xhit/go-str2duration" alt="Go Report Card"></a>
+<a href="https://pkg.go.dev/github.com/xhit/go-str2duration?tab=doc"><img src="https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white" alt="go.dev"></a>
 
 ## Download
 
@@ -17,10 +17,14 @@ Go String To Duration supports this strings conversions to duration:
 - All strings returned in time.Duration String.
 - A string more readable like 1w2d6h3ns (1 week 2 days 6 hours and 3 nanoseconds)
 
+**Note**: a day is 24 hour.
+
+If you don't need days and weeks, use [`time.ParseDuration`](https://golang.org/pkg/time/#ParseDuration).
+
 ## Use cases
 
 - Imagine you save the output of time.Duration strings in a database, file, etc... and you need to convert again to time.Duration. Now you can!
-- Set a  more precise duration in a configuration file for wait, timeouts, measure, etc...
+- Set a more precise duration in a configuration file for wait, timeouts, measure, etc...
 
 ## Usage
 
