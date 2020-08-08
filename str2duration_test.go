@@ -7,8 +7,6 @@ import (
 
 func TestParseString(t *testing.T) {
 
-	DisableCheck = false
-
 	for i, tt := range []struct {
 		dur      string
 		expected time.Duration
@@ -60,8 +58,6 @@ func TestParseString(t *testing.T) {
 
 //TestParseDuration test if string returned by a duration is equal to string returned with the package
 func TestParseDuration(t *testing.T) {
-
-	DisableCheck = true
 
 	for i, duration := range []time.Duration{
 		time.Duration(time.Hour + time.Minute + time.Second + time.Millisecond + time.Microsecond + time.Nanosecond),
