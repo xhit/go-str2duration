@@ -19,6 +19,7 @@ func TestParseString(t *testing.T) {
 		{"1s", time.Duration(time.Second)},
 		{"1ms", time.Duration(time.Millisecond)},
 		{"1µs", time.Duration(time.Microsecond)},
+		{"1us", time.Duration(time.Microsecond)},
 		{"1ns", time.Duration(time.Nanosecond)},
 		{"4.000000001s", time.Duration(4*time.Second + time.Nanosecond)},
 		{"1h0m4.000000001s", time.Duration(time.Hour + 4*time.Second + time.Nanosecond)},
@@ -27,6 +28,7 @@ func TestParseString(t *testing.T) {
 		{"1.00002ms", time.Duration(time.Millisecond + 20*time.Nanosecond)},
 		{"1.00000002s", time.Duration(time.Second + 20*time.Nanosecond)},
 		{"693ns", time.Duration(693 * time.Nanosecond)},
+		{"10s1us693ns", time.Duration(10*time.Second + time.Microsecond + 693*time.Nanosecond)},
 
 		//This times aren't returned with time.Duration string, but are easily readable and can be parsed too!
 		{"1ms1ns", time.Duration(time.Millisecond + 1*time.Nanosecond)},

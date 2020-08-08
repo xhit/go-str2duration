@@ -25,7 +25,7 @@ var reDuration *regexp.Regexp
 
 func init() {
 	reTimeDecimal = regexp.MustCompile(`(?i)(\d+)(?:(?:\.)(\d+))?((?:[mµn])?s)$`)
-	reDuration = regexp.MustCompile(`(?i)^(?:(\d+)(?:w))?(?:(\d+)(?:d))?(?:(\d+)(?:h))?(?:(\d{1,2})(?:m))?(?:(\d+)(?:s))?(?:(\d+)(?:ms))?(?:(\d+)(?:µs))?(?:(\d+)(?:ns))?$`)
+	reDuration = regexp.MustCompile(`(?i)^(?:(\d+)(?:w))?(?:(\d+)(?:d))?(?:(\d+)(?:h))?(?:(\d{1,2})(?:m))?(?:(\d+)(?:s))?(?:(\d+)(?:ms))?(?:(\d+)(?:(?:µ|u)s))?(?:(\d+)(?:ns))?$`)
 }
 
 //Str2Duration returns time.Duration from string input
@@ -132,7 +132,7 @@ func decimalTimeToNano(str string) (string, error) {
 	case "ms":
 		nanoSeconds = 1000000
 		dotTimeDecimal += strings.Repeat("0", 6-len(dotTimeDecimal))
-	case "µs":
+	case "µs", "us":
 		nanoSeconds = 1000
 		dotTimeDecimal += strings.Repeat("0", 3-len(dotTimeDecimal))
 	}

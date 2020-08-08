@@ -15,7 +15,8 @@ go get github.com/xhit/go-str2duration
 
 Go String To Duration supports this strings conversions to duration:
 - All strings returned in time.Duration String.
-- A string more readable like 1w2d6h3ns (1 week 2 days 6 hours and 3 nanoseconds)
+- A string more readable like 1w2d6h3ns (1 week 2 days 6 hours and 3 nanoseconds).
+- `µs` and `us` are microsecond.
 
 **Note**: a day is 24 hour.
 
@@ -58,6 +59,7 @@ func main() {
             {"1s", time.Duration(time.Second)},
             {"1ms", time.Duration(time.Millisecond)},
             {"1µs", time.Duration(time.Microsecond)},
+            {"1us", time.Duration(time.Microsecond)},
             {"1ns", time.Duration(time.Nanosecond)},
             {"4.000000001s", time.Duration(4*time.Second + time.Nanosecond)},
             {"1h0m4.000000001s", time.Duration(time.Hour + 4*time.Second + time.Nanosecond)},
@@ -79,6 +81,8 @@ func main() {
 
             //And can be case insensitive
             {"2D3S96NS", time.Duration(48*time.Hour + 3*time.Second + 96*time.Nanosecond)},
+
+            {"10s1us693ns", time.Duration(10*time.Second + time.Microsecond + 693*time.Nanosecond)},
 
         } {
             durationFromString, err := str2duration.Str2Duration(tt.dur)
