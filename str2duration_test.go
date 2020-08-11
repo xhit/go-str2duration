@@ -38,15 +38,8 @@ func TestParseString(t *testing.T) {
 		{"2d3s96ns", time.Duration(48*time.Hour + 3*time.Second + 96*time.Nanosecond)},
 		{"1w2d3s96ns", time.Duration(168*time.Hour + 48*time.Hour + 3*time.Second + 96*time.Nanosecond)},
 		{"1w2d3s3µs96ns", time.Duration(168*time.Hour + 48*time.Hour + 3*time.Second + 3*time.Microsecond + 96*time.Nanosecond)},
-
-		//And can be case insensitive
-		{"2D3S96NS", time.Duration(48*time.Hour + 3*time.Second + 96*time.Nanosecond)},
-
-		//This cases are invalid
-		{"2.3D3S96NS", time.Duration(48*time.Hour + 3*time.Second + 96*time.Nanosecond)},
-		{"2D3S3.66.SMS", time.Duration(48*time.Hour + 3*time.Second + 96*time.Nanosecond)},
 	} {
-		durationFromString, err := Str2Duration(tt.dur)
+		durationFromString, err := ParseDuration(tt.dur)
 		if err != nil {
 			t.Logf("index %d -> in: %s returned: %s\tnot equal to %s", i, tt.dur, err.Error(), tt.expected.String())
 
@@ -90,7 +83,7 @@ func TestParseDuration(t *testing.T) {
 		time.Duration(61 * time.Second),
 		time.Duration(time.Microsecond + 16*time.Nanosecond),
 	} {
-		durationFromString, _ := Str2Duration(duration.String())
+		durationFromString, _ := ParseDuration(duration.String())
 		if duration.String() != durationFromString.String() {
 			t.Errorf("index %d -> %s not equal to %s", i, duration.String(), durationFromString.String())
 		}

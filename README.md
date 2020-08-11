@@ -2,13 +2,13 @@
 
 This package allows to get a time.Duration from a string. The string can be a string retorned for time.Duration or a similar string with weeks or days too!.
 
-<a href="https://goreportcard.com/report/github.com/xhit/go-str2duration"><img src="https://goreportcard.com/badge/github.com/xhit/go-str2duration" alt="Go Report Card"></a>
-<a href="https://pkg.go.dev/github.com/xhit/go-str2duration?tab=doc"><img src="https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white" alt="go.dev"></a>
+<a href="https://goreportcard.com/report/github.com/xhit/go-str2duration/v2"><img src="https://goreportcard.com/badge/github.com/xhit/go-str2duration" alt="Go Report Card"></a>
+<a href="https://pkg.go.dev/github.com/xhit/go-str2duration/v2?tab=doc"><img src="https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white" alt="go.dev"></a>
 
 ## Download
 
 ```bash
-go get github.com/xhit/go-str2duration
+go get github.com/xhit/go-str2duration/v2
 ```
 
 ## Features
@@ -18,14 +18,11 @@ Go String To Duration supports this strings conversions to duration:
 - A string more readable like 1w2d6h3ns (1 week 2 days 6 hours and 3 nanoseconds).
 - `µs` and `us` are microsecond.
 
+It's the same `time.ParseDuration` standard function in Go, but with days and week support.
+
 **Note**: a day is 24 hour.
 
 If you don't need days and weeks, use [`time.ParseDuration`](https://golang.org/pkg/time/#ParseDuration).
-
-## Use cases
-
-- Imagine you save the output of time.Duration strings in a database, file, etc... and you need to convert again to time.Duration. Now you can!
-- Set a more precise duration in a configuration file for wait, timeouts, measure, etc...
 
 ## Usage
 
@@ -34,20 +31,12 @@ package main
 
 import (
 	"fmt"
-	str2duration "github.com/xhit/go-str2duration"
+	str2duration "github.com/xhit/go-str2duration/v2"
 	"os"
 	"time"
 )
 
 func main() {
-    
-    /*
-    If DisableCheck is true then when input string is
-    is invalid the time.Duration returned is always 0s and err is always nil.
-    By default DisableCheck is false.
-    */
-    
-    //str2duration.DisableCheck = true
 
     for i, tt := range []struct {
             dur      string
@@ -79,13 +68,10 @@ func main() {
             {"2d3s96ns", time.Duration(48*time.Hour + 3*time.Second + 96*time.Nanosecond)},
             {"1w2d3s96ns", time.Duration(168*time.Hour + 48*time.Hour + 3*time.Second + 96*time.Nanosecond)},
 
-            //And can be case insensitive
-            {"2D3S96NS", time.Duration(48*time.Hour + 3*time.Second + 96*time.Nanosecond)},
-
             {"10s1us693ns", time.Duration(10*time.Second + time.Microsecond + 693*time.Nanosecond)},
 
         } {
-            durationFromString, err := str2duration.Str2Duration(tt.dur)
+            durationFromString, err := str2duration.ParseDuration(tt.dur)
             if err != nil {
                 panic(err)
 
