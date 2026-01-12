@@ -1,3 +1,3 @@
-module github.com/xhit/go-str2duration/v2
+module github.com/armourstill/str2quantity
 
-go 1.13
+go 1.22

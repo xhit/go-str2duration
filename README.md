@@ -1,88 +1,155 @@
-# Go String To Duration (go-str2duration)
+# Go Quantity Parser (str2quantity)
 
-This package allows to get a time.Duration from a string. The string can be a string retorned for time.Duration or a similar string with weeks or days too!.
+This is a general-purpose dimension/unit parsing library designed based on Dimensional Analysis.
 
-<a href="https://goreportcard.com/report/github.com/xhit/go-str2duration/v2"><img src="https://goreportcard.com/badge/github.com/xhit/go-str2duration" alt="Go Report Card"></a>
-<a href="https://pkg.go.dev/github.com/xhit/go-str2duration/v2?tab=doc"><img src="https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white" alt="go.dev"></a>
+It supports custom unit systems and introduces **Generic Parsing** and **Precision Control**, helping to avoid precision loss when handling nanosecond-level time or bit-level storage.
 
-## Download
+## Core Features
 
-```bash
-go get github.com/xhit/go-str2duration/v2
-```
+*   **Generic Architecture (`Parse[N]`)**: Supports parsing into any numeric type (`int64`, `float64`, `uint`, `time.Duration`, etc.).
+*   **Precision Control**:
+    *   When the target is an integer type (e.g., `int64`), the library checks for precision loss due to unit conversion (e.g., inputting `0.5ns` or `0.5bit` will return an error).
+    *   Built-in tolerance of `1e-12` to balance floating-point calculation noise and numerical checks.
+*   **Physical Base Design**:
+    *   **Time**: Uses `ns` as the integer base (1.0), aligning with the Go standard library `time.Duration`.
+    *   **Storage**: Uses `bit` as the integer base (1.0), supporting bit-level calculations (packet counting) or common byte-level calculations.
+*   **Flexible Unit System (`unit.System`)**:
+    *   **Multi-part Accumulation**: Supports formats like `1h30m`.
+    *   **Prefix Binding**: Supports SI/IEC prefixes (kB, KiB) and context-sensitive parsing (e.g., `k=1024` in storage vs 1000).
+    *   **Priority Matching**: Resolves unit conflicts.
+*   **Safety**: Built-in Dimensional Checking to prevent illegal operations like `1h + 1kg`.
 
-## Features
+## Quick Start
 
-Go String To Duration supports this strings conversions to duration:
-- All strings returned in time.Duration String.
-- A string more readable like 1w2d6h3ns (1 week 2 days 6 hours and 3 nanoseconds).
-- `µs` and `us` are microsecond.
+### 1. Using Standard Time Library (`std/time`)
 
-It's the same `time.ParseDuration` standard function in Go, but with days and week support.
-
-**Note**: a day is 24 hour.
-
-If you don't need days and weeks, use [`time.ParseDuration`](https://golang.org/pkg/time/#ParseDuration).
-
-## Usage
+Provides unit parsing functionality for time.
 
 ```go
 package main
 
 import (
-	"fmt"
-	str2duration "github.com/xhit/go-str2duration/v2"
-	"os"
-	"time"
+    "fmt"
+    "time"
+    stdtime "github.com/armourstill/str2quantity/std/time"
 )
 
 func main() {
+    // Compatible with standard library format
+    d, _ := stdtime.ParseDuration("1h30m")
+    fmt.Println(d) // 1h30m0s
 
-    for i, tt := range []struct {
-            dur      string
-            expected time.Duration
-        }{
-            //This times are returned with time.Duration string
-            {"1h", time.Duration(time.Hour)},
-            {"1m", time.Duration(time.Minute)},
-            {"1s", time.Duration(time.Second)},
-            {"1ms", time.Duration(time.Millisecond)},
-            {"1µs", time.Duration(time.Microsecond)},
-            {"1us", time.Duration(time.Microsecond)},
-            {"1ns", time.Duration(time.Nanosecond)},
-            {"4.000000001s", time.Duration(4*time.Second + time.Nanosecond)},
-            {"1h0m4.000000001s", time.Duration(time.Hour + 4*time.Second + time.Nanosecond)},
-            {"1h1m0.01s", time.Duration(61*time.Minute + 10*time.Millisecond)},
-            {"1h1m0.123456789s", time.Duration(61*time.Minute + 123456789*time.Nanosecond)},
-            {"1.00002ms", time.Duration(time.Millisecond + 20*time.Nanosecond)},
-            {"1.00000002s", time.Duration(time.Second + 20*time.Nanosecond)},
-            {"693ns", time.Duration(693 * time.Nanosecond)},
-
-            //This times aren't returned with time.Duration string, but are easily readable and can be parsed too!
-            {"1ms1ns", time.Duration(time.Millisecond + 1*time.Nanosecond)},
-            {"1s20ns", time.Duration(time.Second + 20*time.Nanosecond)},
-            {"60h8ms", time.Duration(60*time.Hour + 8*time.Millisecond)},
-            {"96h63s", time.Duration(96*time.Hour + 63*time.Second)},
-
-            //And works with days and weeks!
-            {"2d3s96ns", time.Duration(48*time.Hour + 3*time.Second + 96*time.Nanosecond)},
-            {"1w2d3s96ns", time.Duration(168*time.Hour + 48*time.Hour + 3*time.Second + 96*time.Nanosecond)},
-
-            {"10s1us693ns", time.Duration(10*time.Second + time.Microsecond + 693*time.Nanosecond)},
-
-        } {
-            durationFromString, err := str2duration.ParseDuration(tt.dur)
-            if err != nil {
-                panic(err)
-
-            //Check if expected time is the time returned by the parser
-            } else if tt.expected != durationFromString {
-                 fmt.Println(fmt.Sprintf("index %d -> in: %s returned: %s\tnot equal to %s", i, tt.dur, durationFromString.String(), tt.expected.String()))
-            }else{
-                fmt.Println(fmt.Sprintf("index %d -> in: %s parsed succesfully", i, tt.dur))
-            }
-        }
+    // Precision check: minimum granularity is 1ns
+    _, err := stdtime.ParseDuration("0.5ns")
+    if err != nil {
+        fmt.Println("Error:", err) // Error: precision loss ...
+    }
 }
 ```
 
-Also, you can convert to string the duration using `String(t time.Duration)` function. This support weeks and days and not return the ugly decimals from golang standard `t.String()` function. Units with 0 values aren't returned. For example: `1d1ms` means 1 day 1 millisecond.
+### 2. Using Data Storage Library (`std/storage`)
+
+Provides `ParseBytes` (general) and `ParseBits` (high precision) for different scenarios.
+
+```go
+package main
+
+import (
+    "fmt"
+    stdstorage "github.com/armourstill/str2quantity/std/storage"
+)
+
+func main() {
+    // Scenario A: General capacity config (supports large numbers and decimals)
+    // Even "1bit" will result in 0.125 Bytes
+    bytes, _ := stdstorage.ParseBytes("1.5GB")
+    fmt.Printf("%.2f Bytes\n", bytes)
+
+    // Scenario B: Network packet counting/Hardware counting (Integer bits)
+    // Rejects "0.5 bit", supports up to ~1.15 EiB
+    bits, err := stdstorage.ParseBits("100Mb")
+    if err != nil {
+        panic(err)
+    }
+    fmt.Printf("%d bits\n", bits)
+}
+```
+
+### 3. Building a Custom Unit System
+
+Use generic capabilities to build your own system. For example: build an SI-compliant (1KB=1000B) system using `std/storage`'s Clone feature.
+
+```go
+package main
+
+import (
+    "fmt"
+    "github.com/armourstill/str2quantity/parser"
+    "github.com/armourstill/str2quantity/std/storage"
+)
+
+func main() {
+    // 1. Clone Standard System (Clone)
+    // std/storage defaults to JEDEC/Binary standard (1KB = 1024 Bytes)
+    // We clone it to modify it into an "SI System" (SI Standard)
+    siSys := storage.System.Clone()
+
+    // 2. Overwrite Prefix Definitions (OverwritePrefix)
+    // Change K, M, G etc. to 1000-based
+    siPrefixes := []struct {
+        sym string
+        val float64
+    }{
+        {"k", 1e3}, {"K", 1e3},
+        {"m", 1e6}, {"M", 1e6},
+        {"g", 1e9}, {"G", 1e9},
+        {"t", 1e12}, {"T", 1e12},
+    }
+
+    for _, p := range siPrefixes {
+        // OverwritePrefix can directly modify the scale of existing prefixes
+        // Note: Must modify all variants (e.g., both k and K)
+        if err := siSys.OverwritePrefix(p.sym, p.val); err != nil {
+            panic(err)
+        }
+    }
+
+    // 3. Verification
+    // Custom: 1KB = 1000 Bytes = 8000 bits
+    val, _, _ := parser.Parse[float64]("1KB", siSys)
+    fmt.Printf("SI System 1KB = %.0f bits (Expect 8000)\n", val)
+    // Original: 1KB = 1024 Bytes = 8192 bits
+    valStd, _, _ := parser.Parse[float64]("1KB", storage.System)
+    fmt.Printf("Standard System 1KB = %.0f bits (Expect 8192)\n", valStd)
+}
+```
+
+## Directory Structure
+
+- **`parser/`**: Core generic parsing engine (`Parse[N]`).
+- **`unit/`**: Unit definition and system configuration.
+- **`std/`**:
+    - `std/time`: Time parsing (ns base).
+    - `std/storage`: Storage parsing (bit base).
+
+## Installation
+
+```bash
+go get github.com/armourstill/str2quantity
+```
+
+## Technical Details: Precision and Trade-offs
+
+### Float64 vs Int64
+This library allows developers to choose the underlying numeric type based on the scenario:
+
+*   **Float64 (Default Recommended)**: Suitable for most human-readable configurations (e.g., config files). Has a large numeric range but is limited by floating-point precision (approx. 15 significant digits).
+*   **Int64**: Suitable for scenarios requiring integer precision (e.g., billing, hardware counting). By setting the base unit (e.g., `bit`, `ns`) to 1.0, combined with the library's validation logic, it helps avoid implicit fractional truncation.
+
+### Floating Point Noise Elimination
+During parsing, the library internally uses a tolerance of `1e-12` to automatically handle tiny noise from floating-point operations (e.g., `29.999999...`), ensuring that integer unit conversions (e.g., `1m = 60s`) yield correct integer results when using generic int parsing.
+
+## Roadmap
+
+1. Standardized implementation of other international base units.
+2. Support for dimensional arithmetic, e.g., `F=M·m`.
