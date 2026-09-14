@@ -1,6 +1,7 @@
 package str2duration
 
 import (
+	"math/rand"
 	"testing"
 	"time"
 )
@@ -146,6 +147,48 @@ func TestString(t *testing.T) {
 		durationParsed, _ := ParseDuration(stringDuration)
 		if durationParsed != tt.dur {
 			t.Errorf("error converting string to duration: index %d -> in: %s returned: %s", i, tt.dur, durationParsed)
+		}
+	}
+}
+
+func TestParseDurationBoundaries(t *testing.T) {
+	const min = time.Duration(-1 << 63)
+	for _, input := range []string{
+		"-9223372036854775808ns",
+		"-9223372036854775807ns1ns",
+		min.String(),
+		String(min),
+	} {
+		got, err := ParseDuration(input)
+		if err != nil || got != min {
+			t.Errorf("ParseDuration(%q) = %v, %v; want %v", input, got, err, min)
+		}
+	}
+	for _, input := range []string{
+		"9223372036854775808ns", "-9223372036854775809ns",
+		"9223372036854775807ns1ns", "-9223372036854775808ns1ns",
+		"18446744073709551616ns", "-18446744073709551616ns",
+		"20000w", "-20000w",
+		"-9223372036854775808ns9223372036854775808ns",
+	} {
+		if got, err := ParseDuration(input); err == nil {
+			t.Errorf("ParseDuration(%q) = %v without an overflow error", input, got)
+		}
+	}
+	const max = time.Duration(1<<63 - 1)
+	if got, err := ParseDuration("9223372036854775807ns"); err != nil || got != max {
+		t.Errorf("maximum duration: got %v, %v; want %v", got, err, max)
+	}
+}
+
+func TestDurationRoundTrip(t *testing.T) {
+	random := rand.New(rand.NewSource(1))
+	for i := 0; i < 1000; i++ {
+		want := time.Duration(random.Uint64())
+		for _, input := range []string{want.String(), String(want)} {
+			if got, err := ParseDuration(input); err != nil || got != want {
+				t.Fatalf("ParseDuration(%q) = %v, %v; want %v", input, got, err, want)
+			}
 		}
 	}
 }
